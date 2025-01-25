@@ -38,11 +38,17 @@ class App:
 
             self.spaceGrid.append(rowI)
 
-        staticWall = StaticWall((30, 405), 500, 200)
+        staticWall = StaticWall((30, 400), 500, 200)
         self.staticList.append(staticWall)
         for i in range(30, 30+500, self.gridSize):
-            for j in range(405, 405+200, self.gridSize):
+            for j in range(400, 400+200, self.gridSize):
                 self.spaceGrid[int(i//10)][int(j//10)].physicsObjects.append(staticWall)
+                
+        staticWall2 = StaticWall((907, 103), 112, 248)
+        self.staticList.append(staticWall2)
+        for i in range(907, 907+112, self.gridSize):
+            for j in range(103, 103+248, self.gridSize):
+                self.spaceGrid[int(i//10)][int(j//10)].physicsObjects.append(staticWall2)
 
     def on_event(self, event):
         if event.type == pygame.QUIT:
@@ -90,7 +96,6 @@ class App:
 
             while len(self.particleList) > 300:
                 self.particleList.pop(0)
-
                 
     def addParticleToPartition(self, particle):
         pos = particle.position
