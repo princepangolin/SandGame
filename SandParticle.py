@@ -20,7 +20,7 @@ class SandParticle(object):
         self.velocity[1] = random.uniform(0.0, 5.0)
         self.force = [0, 0]
         self.color = (SandParticle.r, SandParticle.g, SandParticle.b)
-        self.radius = 3
+        self.radius = 7.0
         self.mass = mass
         self.spaces = []
         self.spaces.append(initialSpace)
