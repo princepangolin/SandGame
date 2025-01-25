@@ -66,6 +66,8 @@ class App:
                             obj.updateForce(self.gravity)
                             for otherObj in partition.physicsObjects[:]:
                                 #check for collisions
+                                #testing my new branch
+                                #sdfsdf
                                 pass
                             
                             partition.physicsObjects.remove(obj)
