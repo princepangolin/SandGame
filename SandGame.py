@@ -53,43 +53,44 @@ class App:
         if pygame.mouse.get_pressed()[0] and self.spawnTimer > 5:
             self.spawnTimer = 0
             (x, y) = pygame.mouse.get_pos()
-            newParticle = SandParticle(x, y)
+            newParticle = SandParticle(x, y, self.spaceGrid[x//10][y//10])
             self.particleList.append(newParticle)
             self.spaceGrid[x//10][y//10].physicsObjects.append(newParticle)
-
-        for row in self.spaceGrid:
-            for partition in row:
-                if partition.physicsObjects:
-                    for obj in partition.physicsObjects[:]:
-                        if not obj.static:
-                            obj.force = [0, 0]
-                            obj.updateForce(self.gravity)
-                            for otherObj in partition.physicsObjects[:]:
-                                #check for collisions
-                                #testing my new branch
-                                #sdfsdf
-                                pass
-                            
-                            partition.physicsObjects.remove(obj)
-                            
-                else:
-                    pass
-
+            
+        # Set forces to 0, add any new forces, and check for collisions (which will also add a force)
         for particle in self.particleList:
-            particle.updateVel(dt)
+            particle.force = [0, 0]
+            particle.updateForce(self.gravity)
 
-        for idx, particle in enumerate(self.particleList):
+            for space in particle.spaces[:]:
+                for obj in space.physicsObjects:
+                    # Make sure we're not checking ourself
+                    if obj != particle:
+                        # Check collision between this initial particle and object in this space
+                        if obj.static:
+                            particle.updateForce([0, -self.gravity[1]])
+                            particle.velocity = [0, 0]
+                        
+                # Once we've checked for all possible collisions for this particle, remove this space from the particle and this particle from the space
+                particle.spaces.remove(space)
+                space.physicsObjects.remove(particle)
+
+        # Update velocity, update position, and updated spatial partitions.
+        # Then draw the particle and delete if out of bounds
+        for particle in self.particleList[:]:
+            particle.updateVel(dt)
             particle.updatePos(dt)
             pos = particle.position
             if pos[0] >= 0 and pos[0] <= self.width and pos[1] >= 0 and pos[1] <= self.height:
                 self.spaceGrid[int(pos[0]//10)][int(pos[1]//10)].physicsObjects.append(particle)
+                particle.spaces.append(self.spaceGrid[int(pos[0]//10)][int(pos[1]//10)])
 
             particle.drawSelf(self._display_surf)
 
             if particle.position[0] > (self.width + 10) or particle.position[0] < (0 - 10) or particle.position[1] > (self.height + 10) or particle.position[1] < (0 - 10):
-                partToDelete = self.particleList.pop(idx)
-                del partToDelete
+                self.particleList.remove(particle)
 
+        print(len(self.particleList))
 
     def on_render(self):
         for obj in self.staticList:

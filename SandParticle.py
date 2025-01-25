@@ -11,13 +11,15 @@ class SandParticle(object):
     b = 0
     bFlag = 0
 
-    def __init__(self, xPos, yPos, mass = 1):
+    def __init__(self, xPos, yPos, initialSpace, mass = 1):
         self.position = [xPos, yPos]
         self.velocity = [0, 0]
         self.force = [0, 0]
         self.color = (SandParticle.r, SandParticle.g, SandParticle.b)
         self.radius = 3
         self.mass = mass
+        self.spaces = []
+        self.spaces.append(initialSpace)
         self.static = False
         self.shape = "circle"
 
