@@ -4,6 +4,7 @@ from pygame.locals import *
 from SpatialPartition import SpatialPartition
 from SandParticle import SandParticle
 from StaticWall import StaticWall
+import time
 
 class App:
 
@@ -18,10 +19,10 @@ class App:
         self.spaceGrid = []
         self.gridSize = 10
         self.particleList = []
-        self.spawnTimer = 0
+        self.spawnTimer = 50000
         self.staticList = []
         
-        self.gravity = [0, 100]
+        self.gravity = [0, 50]
 
 
     def on_init(self):
@@ -36,10 +37,10 @@ class App:
 
             self.spaceGrid.append(rowI)
 
-        staticWall = StaticWall((30, 400), 500, 200)
+        staticWall = StaticWall((30, 405), 500, 200)
         self.staticList.append(staticWall)
         for i in range(30, 30+500, self.gridSize):
-            for j in range(400, 400+200, self.gridSize):
+            for j in range(405, 405+200, self.gridSize):
                 self.spaceGrid[int(i//10)][int(j//10)].physicsObjects.append(staticWall)
 
     def on_event(self, event):
@@ -51,7 +52,7 @@ class App:
         dt = self.simRate
         self.spawnTimer += self.clock.tick(self.clockRate)
 
-        if pygame.mouse.get_pressed()[0] and self.spawnTimer > 1:
+        if pygame.mouse.get_pressed()[0] and self.spawnTimer > 10:
             self.spawnTimer = 0
             (x, y) = pygame.mouse.get_pos()
             newParticle = SandParticle(x, y, self.spaceGrid[x//10][y//10])

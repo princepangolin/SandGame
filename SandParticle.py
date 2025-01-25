@@ -2,6 +2,7 @@
 import pygame
 from pygame.locals import *
 import math
+import random
 
 
 class SandParticle(object):
@@ -15,6 +16,8 @@ class SandParticle(object):
     def __init__(self, xPos, yPos, initialSpace, mass = 1):
         self.position = [xPos, yPos]
         self.velocity = [0, 0]
+        self.velocity[0] = random.uniform(-20.0, 20.0)
+        self.velocity[1] = random.uniform(0.0, 5.0)
         self.force = [0, 0]
         self.color = (SandParticle.r, SandParticle.g, SandParticle.b)
         self.radius = 3
@@ -88,21 +91,25 @@ class SandParticle(object):
 
         # At some point I'll have to update this so that the rectangle is not assumed to be x-y aligned
         elif otherObject.shape == "rectangle":
-            xDist = abs(self.position[0] - otherObject.center[0])
-            yDist = abs(self.position[1] - otherObject.center[1])
+            xTest = self.position[0]
+            yTest = self.position[1]
 
-            if xDist > (otherObject.width/2 + self.radius):
-                return False
-            if yDist > (otherObject.height/2 + self.radius):
-                return False
+            if xTest < otherObject.topCorner[0]:
+                xTest = otherObject.topCorner[0]
+            if xTest > otherObject.topCorner[0] + otherObject.width:
+                xTest = otherObject.topCorner[0] + otherObject.width
+                
+            if yTest < otherObject.topCorner[1]:
+                yTest = otherObject.topCorner[1]
+            if yTest > otherObject.topCorner[1] + otherObject.height:
+                yTest = otherObject.topCorner[1] + otherObject.height
 
-            if xDist <= (otherObject.width/2):
-                return True
-            if yDist <= (otherObject.height/2):
-                return True
+            xDist = self.position[0] - xTest
+            yDist = self.position[1] - yTest
 
-            cornerDist = ((xDist - otherObject.width/2)**2) + ((yDist - otherObject.height/2)**2)
-            if cornerDist <= self.radius**2:
+            dist = math.sqrt((xDist)**2 + (yDist)**2)
+
+            if dist <= self.radius:
                 return True
             else:
                 return False
