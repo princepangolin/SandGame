@@ -1,6 +1,7 @@
-# imports
+﻿# imports
 import pygame
 from pygame.locals import *
+import math
 
 
 class SandParticle(object):
@@ -51,24 +52,66 @@ class SandParticle(object):
         self.force[0] += force[0]
         self.force[1] += force[1]
 
+    # Base formula: F_d = 0.5 * ρ * v^2 * C_d * A
+    # Look into this later, for now just gonna set a max speed
+    #def applyAirResistance(self, density, drag):
+    #    velMag = math.sqrt( (self.velocity[0]**2) + (self.velocity(1)**2) )
+    #    force = -(0.5) * density * (velMag**2) * drag * (math.pi * (self.radius**2))
+    
 
     def updateVel(self, dt):
         # F = m*a -> a = F/m
         # Need to remember higher numbers are down/right.
         a = [self.force[0]/self.mass, self.force[1]/self.mass]
-        self.velocity[0] += a[0] * dt
-        self.velocity[1] += a[1] * dt
+        xVel = self.velocity[0] + (a[0] * dt)
+        yVel = self.velocity[1] + (a[1] * dt)
 
+        velCap = 150.0
+        velMag = math.sqrt( (xVel**2) + (yVel**2) )
+        
+        ratio = 1
+        if velMag > velCap:
+            ratio = velCap/velMag
 
-    def checkCollision(self, otherObject) -> bool:
-
-
-        return False
+        self.velocity = [xVel*ratio, yVel*ratio]
 
 
     def updatePos(self, dt):
         self.position[0] += self.velocity[0] * dt
         self.position[1] += self.velocity[1] * dt
+
+
+    def checkCollision(self, otherObject) -> bool:
+        # Need to add circle collision
+        if otherObject.shape == "circle":
+            pass
+
+        # At some point I'll have to update this so that the rectangle is not assumed to be x-y aligned
+        elif otherObject.shape == "rectangle":
+            xDist = abs(self.position[0] - otherObject.center[0])
+            yDist = abs(self.position[1] - otherObject.center[1])
+
+            if xDist > (otherObject.width/2 + self.radius):
+                return False
+            if yDist > (otherObject.height/2 + self.radius):
+                return False
+
+            if xDist <= (otherObject.width/2):
+                return True
+            if yDist <= (otherObject.height/2):
+                return True
+
+            cornerDist = ((xDist - otherObject.width/2)**2) + ((yDist - otherObject.height/2)**2)
+            if cornerDist <= self.radius**2:
+                return True
+            else:
+                return False
+
+        return False
+
+    def applyCollision(self, otherObject):
+        pass
+
 
     def drawSelf(self, surface):
         pygame.draw.circle(surface, self.color, (self.position[0], self.position[1]), self.radius, 0)

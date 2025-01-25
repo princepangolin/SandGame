@@ -13,6 +13,7 @@ class App:
         self.size = self.width, self.height = 1080, 640
         self.clock = pygame.time.Clock()
         self.clockRate = 60
+        self.simRate = 1.0/60
         
         self.spaceGrid = []
         self.gridSize = 10
@@ -20,7 +21,7 @@ class App:
         self.spawnTimer = 0
         self.staticList = []
         
-        self.gravity = [0, 0.002]
+        self.gravity = [0, 100]
 
 
     def on_init(self):
@@ -47,10 +48,10 @@ class App:
 
 
     def on_loop(self):
-        dt = self.clock.tick(self.clockRate)
-        self.spawnTimer += dt
+        dt = self.simRate
+        self.spawnTimer += self.clock.tick(self.clockRate)
 
-        if pygame.mouse.get_pressed()[0] and self.spawnTimer > 5:
+        if pygame.mouse.get_pressed()[0] and self.spawnTimer > 1:
             self.spawnTimer = 0
             (x, y) = pygame.mouse.get_pos()
             newParticle = SandParticle(x, y, self.spaceGrid[x//10][y//10])
@@ -58,39 +59,42 @@ class App:
             self.spaceGrid[x//10][y//10].physicsObjects.append(newParticle)
             
         # Set forces to 0, add any new forces, and check for collisions (which will also add a force)
-        for particle in self.particleList:
-            particle.force = [0, 0]
-            particle.updateForce(self.gravity)
-
-            for space in particle.spaces[:]:
-                for obj in space.physicsObjects:
-                    # Make sure we're not checking ourself
-                    if obj != particle:
-                        # Check collision between this initial particle and object in this space
-                        if obj.static:
-                            particle.updateForce([0, -self.gravity[1]])
-                            particle.velocity = [0, 0]
-                        
-                # Once we've checked for all possible collisions for this particle, remove this space from the particle and this particle from the space
-                particle.spaces.remove(space)
-                space.physicsObjects.remove(particle)
-
-        # Update velocity, update position, and updated spatial partitions.
-        # Then draw the particle and delete if out of bounds
         for particle in self.particleList[:]:
-            particle.updateVel(dt)
-            particle.updatePos(dt)
             pos = particle.position
             if pos[0] >= 0 and pos[0] <= self.width and pos[1] >= 0 and pos[1] <= self.height:
                 self.spaceGrid[int(pos[0]//10)][int(pos[1]//10)].physicsObjects.append(particle)
                 particle.spaces.append(self.spaceGrid[int(pos[0]//10)][int(pos[1]//10)])
+            else:
+                self.particleList.remove(particle)
+
+            particle.force = [0, 0]
+            particle.updateForce(self.gravity)
+
+            # Check all partitions particle is a part of
+            for space in particle.spaces[:]:
+                for obj in space.physicsObjects:
+                    # Make sure we're not checking ourself
+                    if obj != particle:
+                        collision = particle.checkCollision(obj)
+                        if collision:
+                            particle.velocity = [0,0]
+                            particle.updateForce([0, -self.gravity[1]])
+                            particle.applyCollision(obj)
+                            obj.applyCollision(particle)
+                        
+                # Once we've checked for all possible collisions for this particle, remove this space from the particle and this particle from the space
+                particle.spaces.remove(space)
+                space.physicsObjects.remove(particle)
+                
+            particle.updateVel(dt)
+            particle.updatePos(dt)
 
             particle.drawSelf(self._display_surf)
 
-            if particle.position[0] > (self.width + 10) or particle.position[0] < (0 - 10) or particle.position[1] > (self.height + 10) or particle.position[1] < (0 - 10):
-                self.particleList.remove(particle)
+            while len(self.particleList) > 500:
+                self.particleList.pop(0)
 
-        print(len(self.particleList))
+                
 
     def on_render(self):
         for obj in self.staticList:
